@@ -1,0 +1,60 @@
+El-Hajjâj, El-Hajjaj
+Dandân, Dandan
+Ghazbán Ogre, Ghazban Ogre
+Ghazbán Ogress, Ghazban Ogress
+Juzám Djinn, Juzam Djinn
+Khabál Ghoul, Khabal Ghoul
+Márton Stromgald, Marton Stromgald
+Chicken à la King, Chicken a la King
+Déjà Vu, Deja Vu
+Sauté, Saute
+Séance, Seance
+Ifh-Bíff Efreet, Ifh-Biff Efreet
+Bösium Strip, Bosium Strip
+Jötun Grunt, Jotun Grunt
+Jötun Owl Keeper, Jotun Owl Keeper
+Legions of Lim-Dûl, Legions of Lim-Dul
+Lim-Dûl the Necromancer, Lim-Dul the Necromancer
+Lim-Dûl's Cohort, Lim-Dul's Cohort
+Lim-Dûl's Hex, Lim-Dul's Hex
+Lim-Dûl's High Guard, Lim-Dul's High Guard
+Lim-Dûl's Paladin, Lim-Dul's Paladin
+Lim-Dûl's Vault, Lim-Dul's Vault
+Oath of Lim-Dûl, Oath of Lim-Dul
+Ring of Ma'rûf, Ring of Ma'ruf
+Junún Efreet, Junun Efreet
+Ærathi Berserker, Aerathi Berserker
+Æther Adept, Aether Adept
+Æther Barrier, Aether Barrier
+Æther Burst, Aether Burst
+Æther Charge, Aether Charge
+Æther Figment, Aether Figment
+Æther Flash, Aether Flash
+Æther Membrane, Aether Membrane
+Æther Mutation, Aether Mutation
+Æther Rift, Aether Rift
+Æther Shockwave, Aether Shockwave
+Æther Snap, Aether Snap
+Æther Spellbomb, Aether Spellbomb
+Æther Sting, Aether Sting
+Æther Storm, Aether Storm
+Æther Tide, Aether Tide
+Æther Tradewinds, Aether Tradewinds
+Æther Vial, Aether Vial
+Æther Web, Aether Web
+Ætherflame Wall, Aetherflame Wall
+Ætherize, Aetherize
+Ætherling, Aetherling
+Æthermage's Touch, Aethermage's Touch
+Ætherplasm, Aetherplasm
+Æthersnipe, Aethersnipe
+Æthertow, Aethertow
+Arm with Æther, Arm with Aether
+Azorius Æthermage, Azorius Aethermage
+Fold into Æther, Fold into Aether
+Frozen Æther, Frozen Aether
+Scornful Æther-Lich, Scornful Aether-Lich
+Surging Æther, Surging Aether
+Tainted Æther, Tainted Aether
+Vedalken Æthermage, Vedalken Aethermage
+Yet Another Æther Vortex, Yet Another Aether Vortex
