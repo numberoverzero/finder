@@ -26,8 +26,8 @@ class UnicodeCardNameTests(unittest.TestCase):
             try:
                 assert actual == expected
             except AssertionError:
-                print "Expected", expected
-                print "Actual", actual
+                print("Expected", expected)
+                print("Actual", actual)
 
 
 class PowerToughnessTests(unittest.TestCase):
@@ -66,6 +66,34 @@ class PowerToughnessTests(unittest.TestCase):
     def testFilterIllegalCharacters(self):
         string = '2badvalue/4nambla'
         self._validate(string, 2, 4)
+
+
+class LoyaltyTests(unittest.TestCase):
+    def _validate(self, types, toughness, expected_loyalty, scale=10):
+        actual_loyalty = parsers.loyalty(unicode(types), unicode(toughness), scale=scale)
+        if expected_loyalty is None:
+            assert actual_loyalty is None
+        else:
+            assert actual_loyalty == int(expected_loyalty * scale)
+
+    def testBasic(self):
+        self._validate('Planeswalker', '3', 3)
+
+    def testIgnoresSubtypes(self):
+        self._validate('Planeswalker - Frodo', '0', 0)
+
+    def testHalfLoyalty(self):
+        string = u'1' + unichr(0xbd)
+        self._validate('Planeswalker', string, 1.5)
+
+    def testWildCards(self):
+        self._validate('Planeswalker', '*+1', 1)
+
+    def testNegatives(self):
+        self._validate('Planeswalker', '-1', -1)
+
+    def testNoneForNonPlaneswalker(self):
+        self._validate('Goblin Rogue', '3', None)
 
 
 class CMCTests(unittest.TestCase):

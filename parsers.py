@@ -36,7 +36,19 @@ def power_toughness(string, scale=10):
     when returning them.
     '''
     power, toughness = string.split(u'/', 1)
-    return _creature_stat(power.strip()), _creature_stat(toughness.strip())
+    return _creature_stat(power.strip(), scale=scale), _creature_stat(toughness.strip(), scale=scale)
+
+
+def loyalty(types, toughness, scale=10):
+    '''
+    Loyalty is only valid for creatures with the planeswalker type.
+    Their loyalty is equal to their toughness.
+    Even though loyalty is currently whole numbers, uses the same scaling as power, toughness, and mana cost.
+    I wouldn't put it past WotC to add half loyalty in the next Un-set.
+    '''
+    if u'planeswalker' not in types.lower():
+        return None
+    return _creature_stat(toughness, scale=scale)
 
 
 def cmc(string, scale=10, split=''):
