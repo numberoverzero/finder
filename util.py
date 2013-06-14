@@ -12,6 +12,10 @@ determining absolute paths to resources
     _root = os.path.dirname(os.path.realpath(file))
 
 
+def get_root():
+    return _root
+
+
 def abs_path(filename):
     '''Absolute path from _root '''
     if not _root:

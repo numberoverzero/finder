@@ -19,38 +19,40 @@ class Card(db.Model):
     number = db.Column(db.Integer)
     artist = db.Column(db.Text)
 
-    calc_converted_mana_cost = db.Column(db.Integer)
-    calc_colors = db.Column(db.Text)
-    calc_power = db.Column(db.Integer)
-    calc_toughness = db.Column(db.Integer)
-    calc_type = db.Column(db.Text)
-    calc_subtypes = db.Column(db.Text)
+    processed_cmc = db.Column(db.Integer)
+    processed_colors = db.Column(db.Text)
+    processed_power = db.Column(db.Integer)
+    processed_toughness = db.Column(db.Integer)
+    processed_loyalty = db.Column(db.Integer)
+    processed_types = db.Column(db.Text)
+    processed_subtypes = db.Column(db.Text)
+    processed_tilde_rules = db.Column(db.Text)
 
-    def as_tabbed_value(self):
-        '''Returns the column values separated by tabs for bulk-importing.'''
-        return '\t'.join(
-            self.id,
-            self.multiverse_id,
-            self.name,
-            self.cost,
-            self.color,
-            self.type,
-            self.set,
-            self.rarity,
-            self.power,
-            self.toughness,
-            self.oracle_rules,
-            self.flavor_text,
-            self.watermark,
-            self.number,
-            self.artist,
-            self.calc_converted_mana_cost,
-            self.calc_colors,
-            self.calc_power,
-            self.calc_toughness,
-            self.calc_type,
-            self.calc_subtypes,
-        )
+
+card_fields = [
+    'multiverse_id',
+    'name',
+    'cost',
+    'color',
+    'type',
+    'set',
+    'rarity',
+    'power',
+    'toughness',
+    'oracle_rules',
+    'flavor_text',
+    'watermark',
+    'number',
+    'artist',
+    'processed_cmc',
+    'processed_colors',
+    'processed_power',
+    'processed_toughness',
+    'processed_loyalty',
+    'processed_types',
+    'processed_subtypes',
+    'processed_tilde_rules',
+]
 
 
 db.create_all()
