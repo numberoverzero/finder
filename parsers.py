@@ -51,6 +51,17 @@ def loyalty(types, toughness, scale=10):
     return _creature_stat(toughness, scale=scale)
 
 
+def tilde_rules(name, oracle_rules):
+    '''
+    If the card's rules refer to itself, such as "When Foo comes into play..." this will return a string of rules
+    with those self-refereces replaced with tildes: "When ~ comes into play..."
+    This is a common search pattern when looking for cards with a particular effect.
+    '''
+    if name not in oracle_rules:
+        return None
+    return oracle_rules.replace(name, u'~')
+
+
 def cmc(string, scale=10, split=''):
     '''
     Pass 'left' or 'right' for getting one half of the cmc of a split card.

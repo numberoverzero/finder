@@ -96,6 +96,48 @@ class LoyaltyTests(unittest.TestCase):
         self._validate('Goblin Rogue', '3', None)
 
 
+class TildeRulesTextTests(unittest.TestCase):
+    def _validate(self, name, oracle_rules, expected_rules):
+        actual_rules = parsers.tilde_rules(unicode(name), unicode(oracle_rules))
+        assert actual_rules == expected_rules
+
+    def testNoReplacement(self):
+        name = "Foo"
+        oracle_rules = "When Blah comes into play, draw a card."
+        expected_rules = None
+        self._validate(name, oracle_rules, expected_rules)
+
+    def testSingleReplacement(self):
+        name = "Foo"
+        oracle_rules = "When Foo comes into play, draw a card."
+        expected_rules = "When ~ comes into play, draw a card."
+        self._validate(name, oracle_rules, expected_rules)
+
+    def testMultipleReplacement(self):
+        name = "Foo"
+        oracle_rules = "When Foo comes into play, draw a card.\n\nFoo can't be countered by spells or abilities."
+        expected_rules = "When ~ comes into play, draw a card.\n\n~ can't be countered by spells or abilities."
+        self._validate(name, oracle_rules, expected_rules)
+
+    def testEscapedReplacement(self):
+        '''
+        Card names escaped in rules text should not be replaced with '~'
+        This test is for cards like Gotcha which use the card name but in a non-self-referential way by escaping the
+        name in quotes.
+        '''
+        name = "Foo"
+        oracle_rules = "When Foo comes into play, unless a player says 'Foo', draw a card."
+        expected_rules = "When ~ comes into play, unless a player says 'Foo', draw a card."
+        self._validate(name, oracle_rules, expected_rules)
+
+    def testDoesNotMatchSubstring(self):
+        '''When the name is a substring of some part of the rules text, it should not be matched.'''
+        name = "thing"
+        oracle_rules = "When thing comes into play, sacrifice something."
+        expected_rules = "When ~ comes into play, sacrifice something."
+        self._validate(name, oracle_rules, expected_rules)
+
+
 class CMCTests(unittest.TestCase):
     def _validate(self, string, expected, scale=10, split='', raises=None):
         if raises:
