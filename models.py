@@ -19,6 +19,7 @@ class Card(db.Model):
     number = db.Column(db.Integer)
     artist = db.Column(db.Text)
 
+    processed_ascii_name = db.COlumn(db.Text)
     processed_cmc = db.Column(db.Integer)
     processed_colors = db.Column(db.Text)
     processed_power = db.Column(db.Integer)
@@ -44,6 +45,7 @@ card_fields = [
     'watermark',
     'number',
     'artist',
+    'processed_ascii_name',
     'processed_cmc',
     'processed_colors',
     'processed_power',

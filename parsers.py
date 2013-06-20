@@ -28,15 +28,14 @@ def ascii_card_name(card_name):
     return card_name
 
 
-def power_toughness(string, scale=10):
+def power_toughness(value, scale=10):
     '''
-    Returns power and toughness as an int.  x, *, etc are treated as 0.
+    Returns power or toughness as an int.  x, *, etc are treated as 0.
     NOTE: due to unhinged's 1/2 power, toughness thing, all values are scaled by 10 so values can be stored
     as integers.  When querying these values, multiply the input by 10 to properly compare them, and divide by 10
     when returning them.
     '''
-    power, toughness = string.split(u'/', 1)
-    return _creature_stat(power.strip(), scale=scale), _creature_stat(toughness.strip(), scale=scale)
+    return _creature_stat(value.strip(), scale=scale)
 
 
 def loyalty(types, toughness, scale=10):
@@ -59,10 +58,10 @@ def tilde_rules(name, oracle_rules):
     '''
     if name not in oracle_rules:
         return None
-    return oracle_rules.replace(name, u'~')
+    return re.sub(unicode(name), u"~", unicode(oracle_rules), re.UNICODE)
 
 
-def cmc(string, scale=10, split=''):
+def cmc(cost, scale=10, split=''):
     '''
     Pass 'left' or 'right' for getting one half of the cmc of a split card.
     Returns the converted mana cost of a spell as an integer.
@@ -70,7 +69,7 @@ def cmc(string, scale=10, split=''):
     as integers.  When querying these values, multiply the input by 10 properly compare them, and divide by 10
     when returning them.
     '''
-    string = _split(string, split=split)
+    cost = _split(cost, split=split)
 
     #Dictionary since python2.x doesn't have nonlocal keyword
     total = 0
@@ -87,30 +86,30 @@ def cmc(string, scale=10, split=''):
             return u'w'
 
     # Simple replace with 'W' or 'WW' which will count as 1 or 2, respectively
-    string = re.sub(_split_pattern, split_match, string)
+    cost = re.sub(_split_pattern, split_match, cost)
 
-    while _half_s in string:
-        half_index = string.index(_half_s)
+    while _half_s in cost:
+        half_index = cost.index(_half_s)
         # Can't just use replace since we have the get the character after 'Half' as well
-        string = string[0:half_index] + string[half_index + len(_half_s) + 1:]
+        cost = cost[0:half_index] + cost[half_index + len(_half_s) + 1:]
         total += scale / 2
-    string = string.lower()
+    cost = cost.lower()
 
     # Drop Everything but [0-9wubrg] since other characters have cmc 0
-    string = u''.join(c for c in string if c in _numbers+_tiny_colors)
+    cost = u''.join(c for c in cost if c in _numbers+_tiny_colors)
 
     # Count up color characters
-    for c in string:
+    for c in cost:
         if c in _tiny_colors:
             total += scale
     # Drop color characters
-    string = u''.join(c for c in string if c in _numbers)
+    cost = u''.join(c for c in cost if c in _numbers)
 
     # At this point we've dropped splits, variables, halves, and color characters.
     # We should only have integers left, so convert and add
     # If there's nothing left, it was all variable mana cost
-    if string:
-        total += scale * int(string)
+    if cost:
+        total += scale * int(cost)
     return total
 
 
