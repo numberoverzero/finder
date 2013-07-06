@@ -119,7 +119,8 @@ def colors(colors, cost):
     Cards with explicit colors (eg. Pact of Negation) do not check mana cost for color.
     The input for pact of negation should be 'Blue', '0'
 
-    NOTE: Ghost Fire is not properly parsed by this function, since its Color is '' and its Cost is 'R'
+    NOTE: Ghost Fire (gatherer says it's colorless) is not properly parsed by this function,
+        since its Color is '' and its Cost is 'R'
     '''
     calc_colors = set()
     # Handle cards with explicit colors
