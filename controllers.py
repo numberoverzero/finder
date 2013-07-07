@@ -1,5 +1,9 @@
 import ujson
-from finder import parsers
+from finder import (
+    models,
+    parsers,
+    util
+)
 
 
 def process_card(card, scale=10, split=''):
@@ -19,3 +23,37 @@ def process_card(card, scale=10, split=''):
     card.processed_types = type
     card.processed_subtypes = subtype
     card.processed_tilde_rules = parsers.tilde_rules(card.name, card.oracle_rules)
+
+
+def with_fields(card, fields, scale=10, precision=1):
+    '''
+    returns a dictionary of card attributes filtered using the {key: bool} dictionary fields.
+    keys are entries in finder.models.returnable_card_fields, such as:
+        fields= {
+            'colors': True,
+            'cmc': True,
+        }
+    Any omitted fields are assumed False.  Some fields are formatted for clarity.
+    '''
+
+    filtered_results = {}
+    for key, field in models.returnable_card_fields.iteritems():
+        if fields.get(key, False):
+            value = getattr(card, field, None)
+            filtered_results[key] = value
+
+    #=================
+    # post-processing
+    #=================
+
+    if 'rulings' in filtered_results:
+        text = filtered_results['rulings']
+        text = util.sanitize(text)
+        filtered_results['rulings'] = text.split(u'\n')
+
+    if 'cmc' in filtered_results:
+        value = filtered_results['cmc']
+        formatted_value = util.format_scaled_value(value, scale, precision=precision)
+        filtered_results['cmc'] = formatted_value
+
+    return filtered_results
