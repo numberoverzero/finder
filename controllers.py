@@ -24,6 +24,10 @@ def process_card(card, scale=10, split=''):
     card.processed_subtypes = subtype
     card.processed_tilde_rules = parsers.tilde_rules(card.name, card.oracle_rules)
 
+    # Catch Ghostfire's colorless oddity
+    if card.name == u'Ghostfire':
+        card.processed_colors = u''
+
 
 def with_fields(card, fields, scale=10, precision=1):
     '''
