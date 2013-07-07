@@ -18,6 +18,7 @@ class Card(db.Model):
     watermark = db.Column(db.Text)
     number = db.Column(db.Integer)
     artist = db.Column(db.Text)
+    rulings = db.Column(db.Text)
 
     processed_ascii_name = db.COlumn(db.Text)
     processed_cmc = db.Column(db.Integer)
@@ -45,6 +46,7 @@ card_fields = [
     'watermark',
     'number',
     'artist',
+    'rulings',
     'processed_ascii_name',
     'processed_cmc',
     'processed_colors',
@@ -55,6 +57,27 @@ card_fields = [
     'processed_subtypes',
     'processed_tilde_rules',
 ]
+
+returnable_card_fields = {
+    'id': 'multiverse_id',
+    'name': 'name',
+    'cost': 'cost',
+    'type': 'type',
+    'set': 'set',
+    'rarity': 'rarity',
+    'power': 'power',
+    'toughness': 'toughness',
+    'rules': 'oracle_rules',
+    'flavor': 'flavor_text',
+    'watermark': 'watermark',
+    'number': 'number',
+    'artist': 'artist',
+    'rulings': 'rulings',
+    'ascii_name': 'processed_ascii_name',
+    'cmc': 'processed_cmc',
+    'colors': 'processed_colors',
+    'loyalty': 'processed_loyalty',
+}
 
 
 db.create_all()
