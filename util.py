@@ -28,7 +28,7 @@ def load_file(filename):
     path = abs_path(filename)
     with open(path) as f:
         data = f.read()
-        return _sanitize(data)
+        return sanitize(data)
 
 
 def load_config(config, filename):
@@ -50,8 +50,10 @@ def _until(string, suffix):
     return string.split(suffix)[0]
 
 
-def _sanitize(string):
+def sanitize(string):
     '''Returns the string as unicode, with \n line endings'''
+    if string is None:
+        return u''
     try:
         string = unicode(string, encoding='utf-8')
     except UnicodeEncodeError:
@@ -59,3 +61,15 @@ def _sanitize(string):
         pass
     string = string.replace(u'\r\n', u'\n')
     return string
+
+
+def format_scaled_value(value, scale, precision=1):
+    '''
+    Returns an int or string.
+
+    Returns an int when value is evenly divisible by scale,
+    otherwise returns a string with the given number of decimal places.
+    '''
+    if value % scale == 0:
+        return int(value / scale)
+    return "{0:0.{p}f}".format(value / scale, p=precision)
