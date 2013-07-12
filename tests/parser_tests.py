@@ -31,43 +31,52 @@ class UnicodeCardNameTests(unittest.TestCase):
 
 
 class PowerToughnessTests(unittest.TestCase):
-    def _validate(self, string, expected_power, expected_toughness, scale=10):
+    def _validate(self, string, type, expected_power, expected_toughness, scale=10):
         pow_str, tough_str = string.split(u'/')
-        actual_power = parsers.power_toughness(unicode(pow_str), scale=scale)
-        actual_toughness = parsers.power_toughness(unicode(tough_str), scale=scale)
-        assert actual_power == int(expected_power * scale)
-        assert actual_toughness == int(expected_toughness * scale)
+        actual_power = parsers.power_toughness(unicode(type), unicode(pow_str), scale=scale)
+        actual_toughness = parsers.power_toughness(unicode(type), unicode(tough_str), scale=scale)
+        if expected_power is None:
+            assert actual_power is None
+        else:
+            assert actual_power == int(expected_power * scale)
+        if expected_toughness is None:
+            assert actual_toughness is None
+        else:
+            assert actual_toughness == int(expected_toughness * scale)
 
     def testBasic(self):
-        self._validate(u'1/2', 1, 2)
+        self._validate(u'1/2', 'creature', 1, 2)
 
     def testSpace(self):
-        self._validate(u'1/ 2', 1, 2)
-        self._validate(u'1 /2', 1, 2)
-        self._validate(u'1 / 2', 1, 2)
+        self._validate(u'1/ 2', 'creature', 1, 2)
+        self._validate(u'1 /2', 'creature', 1, 2)
+        self._validate(u'1 / 2', 'creature', 1, 2)
 
     def testHalfPower(self):
         string = u'1' + unichr(0xbd) + u'/' + u'2'
-        self._validate(string, 1.5, 2)
+        self._validate(string, 'creature', 1.5, 2)
 
     def testWildCards(self):
-        self._validate('*+1/*', 1, 0)
+        self._validate('*+1/*', 'creature', 1, 0)
 
     def testNegatives(self):
         string = u'4-*' + u'/' + u'-1'
-        self._validate(string, 4, -1)
+        self._validate(string, 'creature', 4, -1)
 
     def testAltWildCards(self):
         string = u'x+2 / x-2'
-        self._validate(string, 2, -2)
+        self._validate(string, 'creature', 2, -2)
 
     def testExponenetsIgnored(self):
         string = u'*' + unichr(0xb2) + u'/' + u'*' + unichr(0xb2)
-        self._validate(string, 0, 0)
+        self._validate(string, 'creature', 0, 0)
 
     def testFilterIllegalCharacters(self):
         string = '2badvalue/4nambla'
-        self._validate(string, 2, 4)
+        self._validate(string, 'creature', 2, 4)
+
+    def testNonCreature(self):
+        self._validate('1/2', 'enchantment', None, None)
 
 
 class LoyaltyTests(unittest.TestCase):
