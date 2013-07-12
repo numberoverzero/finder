@@ -1,4 +1,3 @@
-import ujson
 from finder import (
     models,
     parsers,
@@ -15,8 +14,8 @@ def process_card(card, scale=10, split=''):
     card.processed_ascii_name = parsers.ascii_card_name(card.name)
     card.processed_cmc = parsers.cmc(card.cost, scale=scale, split=split)
     card.processed_colors = parsers.colors(card.color, card.cost)
-    card.processed_power = parsers.power_toughness(card.power, scale=scale)
-    card.processed_toughness = parsers.power_toughness(card.toughness, scale=scale)
+    card.processed_power = parsers.power_toughness(card.type, card.power, scale=scale)
+    card.processed_toughness = parsers.power_toughness(card.type, card.toughness, scale=scale)
     card.processed_loyalty = parsers.loyalty(card.type, card.toughness, scale=scale)
 
     type, subtype = parsers.types(card.type, split=split)
@@ -24,12 +23,14 @@ def process_card(card, scale=10, split=''):
     card.processed_subtypes = subtype
     card.processed_tilde_rules = parsers.tilde_rules(card.name, card.oracle_rules)
 
+    card.processed_scale = scale
+
     # Catch Ghostfire's colorless oddity
     if card.name == u'Ghostfire':
         card.processed_colors = u''
 
 
-def with_fields(card, fields, scale=10, precision=1):
+def with_fields(card, fields, precision=1):
     '''
     returns a dictionary of card attributes filtered using the {key: bool} dictionary fields.
     keys are entries in finder.models.returnable_card_fields, such as:
@@ -55,9 +56,14 @@ def with_fields(card, fields, scale=10, precision=1):
         text = util.sanitize(text)
         filtered_results['rulings'] = text.split(u'\n')
 
-    if 'cmc' in filtered_results:
-        value = filtered_results['cmc']
-        formatted_value = util.format_scaled_value(value, scale, precision=precision)
-        filtered_results['cmc'] = formatted_value
+    def scale_value(field):
+        if field in filtered_results:
+            value = filtered_results[field]
+            formatted_value = util.format_scaled_value(value, card.processed_scale, precision=precision)
+            filtered_results[field] = formatted_value
+
+    scale_value('cmc')
+    scale_value('power')
+    scale_value('toughness')
 
     return filtered_results
