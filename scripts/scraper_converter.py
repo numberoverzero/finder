@@ -8,12 +8,8 @@ Processes the cards scraped using the gatherer downloader and adds sane attribut
 Card attributes are saved according to finder.models.Card
 '''
 
+import os
 import sqlsoup
-from finder import (
-    controllers,
-    models,
-    util
-)
 
 sides = [u'left', u'right']
 
@@ -38,32 +34,51 @@ field_conversion = {
 }
 
 
+def patch_db(database_location):
+    # Patch the app's database uri
+    os.environ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + database_location
+    # Blow away any existing file
+    from finder import util
+    util.touch(database_location, overwrite=True)
+
+
 def convert(indb, outdb, scale=10):
     '''Convert each entry in indb using various parsers and save to outdb'''
+    from finder import db as dst
     src = sqlsoup.SQLSoup('sqlite:///{}'.format(indb))
 
-    dst = None
-    raise NotImplementedError('dst is None!')
-
     rows = src.MTGCardInfo.all()
-    for row in rows:
+    n = len(rows)
+    notify_count = 10
+    notify_interval = 100 / notify_count
+    last = -notify_interval
+    for i, row in enumerate(rows):
         convert_row(row, dst, scale=scale)
+        if (100 * i / n) / notify_interval > last:
+            last = (100 * i / n) / notify_interval
+            print("{}% ({} / {})".format(last * notify_interval, i, n))
+    print("100% ({} / {})".format(n, n))
+    print("\nSaving changes...")
+    dst.session.commit()
+    print("Saved!\n")
 
 
 def convert_row(row, dst, scale=10):
     '''Convert a src row into one or more dst cards'''
+    from finder import util
     name = util.sanitize(row.name)
     attrs = {dkey: getattr(row, skey) for skey, dkey in field_conversion.iteritems()}
     # Split card, process both halves
     if u'//' in name:
         for side in sides:
-            dst.add(to_card(attrs, scale=scale, split=side))
+            dst.session.add(to_card(attrs, scale=scale, split=side))
     else:
-        dst.add(to_card(attrs, scale=scale))
+        dst.session.add(to_card(attrs, scale=scale))
 
 
 def to_card(attrs, scale=10, split=''):
     '''attrs is a dictionary whose keys are finder.model.Card attributes.'''
+    from finder import controllers, models
     card = models.Card(**attrs)
     controllers.process_card(card, scale=scale, split=split)
     return card
@@ -71,8 +86,9 @@ def to_card(attrs, scale=10, split=''):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('input', help='sqlite .db database to load from (should use gatherer downloader save format')
+    parser.add_argument('input', help='sqlite db to load from (gatherer downloader format)')
     parser.add_argument('output', help='filename to save well-formed card sqlite .db database to')
 
     args = parser.parse_args()
+    patch_db(args.output)
     convert(args.input, args.output, scale=10)
