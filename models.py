@@ -20,7 +20,7 @@ class Card(db.Model):
     artist = db.Column(db.Text)
     rulings = db.Column(db.Text)
 
-    processed_ascii_name = db.COlumn(db.Text)
+    processed_ascii_name = db.Column(db.Text)
     processed_cmc = db.Column(db.Integer)
     processed_colors = db.Column(db.Text)
     processed_power = db.Column(db.Integer)
@@ -29,6 +29,7 @@ class Card(db.Model):
     processed_types = db.Column(db.Text)
     processed_subtypes = db.Column(db.Text)
     processed_tilde_rules = db.Column(db.Text)
+    processed_scale = db.Column(db.Integer)
 
 
 card_fields = [
@@ -56,6 +57,7 @@ card_fields = [
     'processed_types',
     'processed_subtypes',
     'processed_tilde_rules',
+    'processed_scale',
 ]
 
 returnable_card_fields = {
