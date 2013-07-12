@@ -31,7 +31,7 @@ def load_file(filename):
         return sanitize(data)
 
 
-def load_config(config, filename):
+def load_file_config(config, filename):
     '''key = value in filename becomes config[key] = value'''
     config_lines = load_file(filename).split(u'\n')
     for line in config_lines:
@@ -41,6 +41,17 @@ def load_config(config, filename):
         key, value = line.split(u'=', 1)
         key, value = key.strip(), value.strip()
         config[key] = value
+
+
+def load_env_config(config, keys, overwrite_null=False):
+    '''
+    Load environment variables into config, where keys is an iterable of env keys to look up.
+    overwrite_null=True means keys not found in env vars are set in config as None.  Otherwise, those values aren't set.
+    '''
+    for key in keys:
+        value = os.getenv(key, None)
+        if (value is not None) or overwrite_null:
+            config[key] = value
 
 
 def _until(string, suffix):
@@ -59,8 +70,17 @@ def sanitize(string):
     except UnicodeEncodeError:
         # Already unicode
         pass
+    except TypeError:
+        # Already unicode
+        pass
     string = string.replace(u'\r\n', u'\n')
     return string
+
+
+def touch(fname, times=None, overwrite=False):
+    mode = 'w' if overwrite else 'a'
+    with file(fname, mode):
+        os.utime(fname, times)
 
 
 def format_scaled_value(value, scale, precision=1):
