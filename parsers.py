@@ -28,13 +28,15 @@ def ascii_card_name(card_name):
     return card_name
 
 
-def power_toughness(value, scale=10):
+def power_toughness(types, value, scale=10):
     '''
     Returns power or toughness as an int.  x, *, etc are treated as 0.
     NOTE: due to unhinged's 1/2 power, toughness thing, all values are scaled by 10 so values can be stored
     as integers.  When querying these values, multiply the input by 10 to properly compare them, and divide by 10
     when returning them.
     '''
+    if u'creature' not in types.lower():
+        return None
     return _creature_stat(value.strip(), scale=scale)
 
 
@@ -47,7 +49,7 @@ def loyalty(types, toughness, scale=10):
     '''
     if u'planeswalker' not in types.lower():
         return None
-    return _creature_stat(toughness, scale=scale)
+    return _creature_stat(toughness.strip(), scale=scale)
 
 
 def tilde_rules(name, oracle_rules):
