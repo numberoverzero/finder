@@ -51,6 +51,12 @@ def with_fields(card, fields, precision=1):
     # post-processing
     #=================
 
+    if 'formats' in fields:
+        # Generate a list of strings regarding the cards' legality in each format
+        # Format: "[Legality] in [Format]"
+        # Don't tag cards that are too old for a format as banned in that format.
+        raise NotImplementedError("formats not calculated yet!")
+
     if 'rulings' in filtered_results:
         text = filtered_results['rulings']
         text = util.sanitize(text)
