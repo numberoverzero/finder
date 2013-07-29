@@ -1,19 +1,17 @@
 Finder
 =========================================
 
-Finder is a web service that aims for parity with Gatherer search features.
+Finder is a web service that aims for near parity with magiccards.info search features.
 
 Features:
 
-*   **Familiar query format** - Uses a nearly identical syntax to `magiccards.info <magiccards.info>`_, tweaked to make room for some additional fields and search options.
-
 *   **Custom data hydration** Why load artist name or collector's number if you don't use them?  Specify the attributes you want filled.
 
-*   **Paginated APIs** - Unless you like everything at once.  That's fine too.  *(Available post-release)*
+*   **Paginated APIs** - Unless you like everything at once.  That's fine too.  *(Not included in initial release)*
 
 *   **Small footprint** - All card data fits in a single ~16MB sqlite db, so you can easily download updated databases as new sets come out.
 
-*   **Batteries included** - Want to do your own updates?  Comes with scripts to add proper comparable fields to a gatherer scrape, such as cmc and integer power/toughness fields.  Full translation (Alpha through current) takes less than 15 seconds.
+*   **Batteries included** - Want to do your own updates?  Includes scripts to add proper comparable fields to a gatherer scrape, such as cmc and integer power/toughness fields.  Full database translation in less than 15 seconds.
 
 API
 =========================================
@@ -24,114 +22,245 @@ Session Key Generation
 
 /[APIKEY]/generate?duration=[SECONDS]
 
-Session Keys allow you to embed calls to finder in your website without exposing your account API key.  When generating session keys, you can specify a custom key duration in seconds.  The default is 300 seconds (5 minutes).
+Session Keys allow you to embed calls to finder in your website without exposing your account API key.
+When generating session keys, you can specify a custom key duration in seconds.  The default is 300 seconds (5 minutes).
 
 
 Searching
 -----------------------------------------
 
-When searching for cards, you don't always want all of the info available for a card.  For example, when displaying a gallery of cards with collector information (rarity, artist, set and set number) you probably don't need legal formats, converted mana cost, or rulings.  When you only need a subset of card data, use the optional ``fields`` parameter to specify which fields you want in your results.  Here's the basic format::
+Card queries are passed as json in the body, result settings in the querystring.
 
-    /[SESSIONKEY]/search?[SEARCHTYPE]=[SEARCHSTRING]&fields=[RESULTFIELDS]&dupes=false
+* (optional) ``fields`` is a comma-delimited list of card attributes to include in the results, such as ``fields=name,colors,cmc``.  Defaults to all fields.
 
-Currently, ``SEARCHTYPE`` is always ``q``.  This search allows the use of each field at most once, and boolean operators are not supported.  The following search is not allowed since it uses both boolean operators and specifies the name constraint twice::
+* (optional) ``remove_dupes`` is a boolean to remove duplicate cards by name from results.  If true, this keeps only one instance of the newest printing of a card.  Default is true.
 
-    n:Birds OR (cmc<=2 AND n:Angel)
+URI::
 
-In the future, support for boolean operators (with nesting) may be added, or support for gatherer-style queries.
+    /[SESSIONKEY]/search?fields=[RESULTFIELDS]&remove_dupes=true
 
-``SEARCHSTRING`` has a different syntax depending on which type of search you're doing.  The search string format is different for each search type - see `Search: Basic Queries`_ for more format information.
 
-``fields`` is an optional parameter which constrains the set of card attributes that will be returned.  See `Search: Filtered Results`_ for more information.  By default, all fields are included.
+Let's find cards that have between 4 and 6 power (inclusive), cmc of 3 or less, and are multicolored.
+We only want the newest printing, and we only want name, id, and mana cost back::
 
-``dupes`` is an optional parameter which controls whether multiple versions of the same card (by name) are returned.  By default dupes is false, and only the most recent version of a card is returned.
+    /[SESSIONKEY]/search?fields=name,id,mana&remove_dupes=true
 
-Search: Basic Queries
+    {
+        "AND": [
+            "power": ">=4",
+            "power": "<=6",
+            "cmc": "<=3",
+            "colors": ["multi"]
+        ]
+    }
+
+
+This can be compacted a bit, by using short names and color values::
+
+    {
+        "AND": [
+            "pow": ">=4",
+            "pow": "<=6",
+            "cmc": "<=3",
+            "c": ["m"]
+        ]
+    }
+
+Note that the top-level AND is required - otherwise we would have two "pow" keys in the top-level object, which is invalid.
+This is required for all queries, even if the keys are unique.
+
+Search: Logical operators
 -----------------------------------------
 
-The basic search format is::
+There are three supported logical operators: ``AND``, ``OR``, and ``NOT``.  Both ``AND`` and ``OR`` must be an array,
+where each element is either a field:value pair or another logical operator.
+``NOT`` is an object with a single element - any NOT object with more than one key:value pair will make the query invalid.
 
-    /[SESSIONKEY]/search?q=[SEARCHSTRING]
+Finally, note that logical operators CANNOT be the value for a card field - ``"name": { "OR": ["Foo", "Bar"]}`` is invalid.
 
-``SEARCHSTRING`` separates each field-op-value set (see `Search: Field keys and formats`_) with a space or plus sign::
+::
 
-    search?q=field1:value1+field2!"value2"+field3>=value3
+    {
+        "AND": [
+            "OR": [
+                "name": "Foo",
+                "name": "Bar",
+            ],
 
-Remember, values must be percent-escaped.  The following searches for cards by the artist "John" (an exact match, so "John Fields" is excluded) with converted mana cost 7 or higher and a name that includes "Something Like"::
+            "AND": [
+                "type": "Creature",
+                "OR": [
+                    "pow": "<5",
+                    "tou": "<5"
+                ]
+            ],
 
-    search?q=cmc>=7+artist!"John"+name:"Something Like"
+            "NOT": {
+                "set": "Return To Ravnica"
+            }
+        ]
+    }
 
-Note that the value ``"John"`` doesn't require double quotes since there are no spaces.  Further, it's not currently possible to search for a string that includes double quotes (an escape character is not defined).
 
-Search: Filtered Results
+
+Search: Nesting operators
 -----------------------------------------
 
-The optional query parameter ``fields`` allows us to restrict the set of card attributes that are included in search results.  This is particularly valuable when searches may contain a large number of results, or we only need a small number of fields, such as name, converted mana cost, and oracle text.  In this case, a filtered search will return a much smaller amount of data.
+The operators ``AND``, ``OR``, and ``NOT`` can be nested to create complex queries.
+Suppose we want all creatures with cmc 3 or less, and the cards must either be blue only, or at least red and white::
 
-``fields`` is a comma-separated list of fields to include for each card in the result set.  To include name, converted mana cost, and oracle text, we would use::
+    {
+        "AND": [
+            "cmc": "<=3",
+            "type": "Creature",
+            "OR": [
+                "color": ["strict", "blue"],
+                "color": ["red", "white", "multi"]
+            ]
+        ]
+    }
 
-    /[SESSIONKEY]/search?q=[SEARCHSTRING]&fields=name,cmc,rules
+The minimum criteria is our first two and values: it must have cmc <=3, and type "Creature".  Then, it can match one of
+two criteria: either be exclusively blue, or have at least the two colors red and white.  Note that the second option
+is expressed as red/white/multi, since red/white alone allows mono-red and mono-white.
 
-All search fields and additional fields are available, so we can use ``printed_cost`` and ``cmc`` together to show cards with their actual costs, while sorting the results by cmc::
+Here's the compacted version::
 
-    /[SESSIONKEY]/search?q=[SEARCHSTRING]&fields=cmc,printed_cost,name
+    {
+        "AND": [
+            "cmc": "<=3",
+            "t": "Creature",
+            "OR": [
+                "c": ["!", "u"],
+                "c": ["r", "w", "m"]
+            ]
+        ]
+    }
 
 Search: Field keys and formats
 -----------------------------------------
 
-Field constraints are passed as ``[FIELD][OP][SEARCHVALUE]``.
+Numeric fields can use any of the following six operators::
 
-``OP`` has different values depending on field type.  **Note**: ``[SEARCHVALUE]`` must be `percent-encoded <http://en.wikipedia.org/wiki/Percent-encoding>`_.
+    ==  !=  <  >  <=  >=
 
-* Integer fields can use any of the following six operators::
-
-    =   !   <  >  <=   >=
-
-* String fields can use either of the following operators::
-
-    : (partial match)  ! (exact match)
-
-A few other notes:
-
-* All string searches are case insensitive.
-
-* When searching for strings with spaces, surround the entire search with double quotes: ``name!"Birds of Paradise"`` would require an exact match on the name "Birds of Paradise".
+Strings always compare ignoring case, and non-ascii characters are replaced with their closest ascii values (mostly
+removing combining characters such as accents).  The only (optional) string operator is "!" which forces a strict
+match - "!Foo" will not match "FooBar" or "MyFoo".  String comparison defaults to non-strict matching
+(so "foo" will match "my foo").
 
 Examples:
 
-* ``artist:John`` would match both "John Von Bear" and "Green Johnman"
+* ``"artist": "John"`` would match both "John Von Bear" and "Green Johnman"
 
-* ``id>=56123`` would match any cards with multiverse id 56123 and up.
+* ``"id": ">=56123"`` would match any cards with multiverse id 56123 and up.
 
-* ``name:"%26"`` is a partial search (percent-encoded) on the name "&" which will find cards including `"Look at me, I'm R&D" <http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=74360>`_.
+* ``"name": "&"`` is a partial search on the name "&" which will find cards including `"Look at me, I'm R&D" <http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=74360>`_.
 
+In the following table, type is with respect to which operators it allows.
+Note that all values must be passed as strings, even numeric fields such as id or power
+(because they require an operator)
 
 +----------+----------+----------+----------+----------+----------+
 |Field     |Short Name|Type      |Field     |Short Name|Type      |
 +==========+==========+==========+==========+==========+==========+
-|id        |id        | integer  |flavor    |fla       | string   |
+|id        |id        | numeric  |flavor    |fla       | string   |
 +----------+----------+----------+----------+----------+----------+
 |name      |n         | string   |watermark |wat       | string   |
 +----------+----------+----------+----------+----------+----------+
-|type      |t         | string   |number    |num       | integer  |
+|type      |t         | string   |number    |num       | numeric  |
 +----------+----------+----------+----------+----------+----------+
 |set       |s         | string   |artist    |a         | string   |
 +----------+----------+----------+----------+----------+----------+
 |rarity    |r         | string   |rulings   |rul       | string   |
 +----------+----------+----------+----------+----------+----------+
-|power     |pow       | integer  |cmc       |cmc       | integer  |
+|power     |pow       | numeric  |cmc       |cmc       | numeric  |
 +----------+----------+----------+----------+----------+----------+
-|toughness |tou       | integer  |colors    |c         | string   |
+|toughness |tou       | numeric  |colors    |c         | array    |
 +----------+----------+----------+----------+----------+----------+
-|rules     |o         | string   |loyalty   |lo        | integer  |
+|rules     |o         | string   |loyalty   |lo        | numeric  |
 +----------+----------+----------+----------+----------+----------+
 |format    |f         | string   |          |          |          |
 +----------+----------+----------+----------+----------+----------+
 
-Search Results: Additional Fields
+Search: Special field keys
 -----------------------------------------
 
-Some fields such as name, power, toughness are simplified in order to make searching easier (such as allowing ascii replacements for non-ascii characters - try search?q=name:aether for an example).  However, many users would like to access the card's printed values as well as the computed values.  Therefore these fields are available by their computed name (the same used to search) as well as the original printed value, available as ``printed_[FIELD]``.  Currently the additional result fields are:
+``colors`` is an array of strings.  Each element is either a single character, or the full name, such as "w" or "white".
+
+* Case insensitive.
+
+* Order isn't important.
+
+* Duplicate values are redundant.
+
++----------+----------+
+|Name      |Short Name|
++==========+==========+
+|white     |w         |
++----------+----------+
+|blue      |u         |
++----------+----------+
+|black     |b         |
++----------+----------+
+|red       |r         |
++----------+----------+
+|green     |g         |
++----------+----------+
+|multi     |m         |
++----------+----------+
+|land      |l         |
++----------+----------+
+|colorless |c         |
++----------+----------+
+|strict    |!         |
++----------+----------+
+
+
+The following returns cards that contain at least blue or at least white::
+
+    {
+        "AND": [
+            "color": [
+                "blue",
+                "white"
+            ]
+        ]
+    }
+
+The following returns cards that contain blue, white, or blue and white (and no other colors)::
+
+    {
+        "AND": [
+            "color": [
+                "blue",
+                "white",
+                "strict"
+            ]
+        ]
+    }
+
+Finally, the following returns cards that contain both blue and white, and no other colors::
+
+    {
+        "AND": [
+            "color": [
+                "blue",
+                "white",
+                "strict",
+                "multi"
+            ]
+        ]
+    }
+
+Search Results: As-printed fields
+-----------------------------------------
+
+Some fields such as name, power, toughness are simplified in order to make searching easier
+(such as allowing ascii replacements for non-ascii characters - try search?q=name:aether for an example).
+However, many users would like to access the card's printed values as well as the computed values.
+Therefore these fields are available by their computed name (the same used to search) as well as the original
+printed value, available as ``printed_[FIELD]``.  Currently the additional result fields are:
 
 * ``printed_name``
 
