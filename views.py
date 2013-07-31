@@ -1,14 +1,12 @@
-from flask.ext.restful import Resource, abort, reqparse
-from finder import api
-
-parser = reqparse.RequestParser()
-parser.add_argument('age', type=str)
+from flask import request, jsonify, abort
+from finder import app
 
 
-class Greet(Resource):
-    def get(self, name):
-        args = parser.parse_args()
-        if name in ['test']:
-            abort(403, message="Must provide a real name.")
-        return {'msg': 'Hello, %s' % name, 'age': args['age']}
-api.add_resource(Greet, '/hello/<string:name>')
+@app.route('/<name>', methods=["PUT", "POST"])
+def greet(name):
+    if not request.json:
+        abort(400)
+    return jsonify(**{
+        'msg': 'Hello, {}'.format(name),
+        'json': request.json,
+    })
