@@ -2,11 +2,8 @@ from flask import request, jsonify, abort
 from finder import app
 
 
-@app.route('/<name>', methods=["PUT", "POST"])
-def greet(name):
+@app.route('/echo', methods=["PUT", "POST"])
+def echo():
     if not request.json:
         abort(400)
-    return jsonify(**{
-        'msg': 'Hello, {}'.format(name),
-        'json': request.json,
-    })
+    return jsonify(**request.json)
