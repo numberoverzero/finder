@@ -3,7 +3,7 @@ import finder
 import unittest
 
 
-class FlaskrTestCase(unittest.TestCase):
+class FinderTestCase(unittest.TestCase):
 
     def setUp(self):
         finder.app.config['TESTING'] = True
