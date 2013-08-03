@@ -167,3 +167,5 @@ pip-log.txt
 
 # SublimeText2
 *.sublime-workspace
+
+_db
