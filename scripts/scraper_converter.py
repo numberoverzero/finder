@@ -1,9 +1,9 @@
 '''
 Usage:
-  python scraper_converter.py scraped.db formatted.db
+  python scraper_converter.py scraped.db
 
 Processes the cards scraped using the gatherer downloader and adds sane attributes fields for querying
-(int pow/toughness, cmc) and saves the output to a new sqlite database.
+(int pow/toughness, cmc) and saves the output to the app's database location.
 
 Card attributes are saved according to finder.models.Card
 '''
@@ -33,16 +33,7 @@ field_conversion = {
     'rulings': 'rulings'
 }
 
-
-def patch_db(database_location):
-    # Patch the app's database uri
-    os.environ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + database_location
-    # Blow away any existing file
-    from finder import util
-    util.touch(database_location, overwrite=True)
-
-
-def convert(indb, outdb, scale=10):
+def convert(indb, scale=10):
     '''Convert each entry in indb using various parsers and save to outdb'''
     from finder import db as dst
     src = sqlsoup.SQLSoup('sqlite:///{}'.format(indb))
@@ -87,8 +78,6 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('input', help='sqlite db to load from (gatherer downloader format)')
-    parser.add_argument('output', help='filename to save well-formed card sqlite .db database to')
 
     args = parser.parse_args()
-    patch_db(args.output)
-    convert(args.input, args.output, scale=10)
+    convert(args.input, scale=10)
