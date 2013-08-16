@@ -1,4 +1,6 @@
-from finder import db
+from finder import app
+from flask.ext import sqlalchemy
+db = sqlalchemy.SQLAlchemy(app)
 
 
 class Card(db.Model):
@@ -82,6 +84,5 @@ returnable_card_fields = {
     'colors': 'processed_colors',
     'loyalty': 'processed_loyalty',
 }
-
 
 db.create_all()
