@@ -30,7 +30,7 @@ def process_card(card, scale=10, split=''):
         card.processed_colors = u''
 
 
-def with_fields(card, fields, precision=1):
+def with_fields(card, fields=None, precision=1):
     '''
     returns a dictionary of card attributes filtered using the {key: bool} dictionary fields.
     keys are entries in finder.models.returnable_card_fields, such as:
@@ -38,12 +38,19 @@ def with_fields(card, fields, precision=1):
             'colors': True,
             'cmc': True,
         }
-    Any omitted fields are assumed False.  Some fields are formatted for clarity.
+    Any omitted fields are assumed False.
+    If fields is None, all fields are returned.
+    Some fields are formatted for clarity.
     '''
+
+    if fields is None:
+        include_field = lambda key: True
+    else:
+        include_field = lambda key: fields.get(key, False)
 
     filtered_results = {}
     for key, field in models.returnable_card_fields.iteritems():
-        if fields.get(key, False):
+        if include_field(key):
             value = getattr(card, field, None)
             filtered_results[key] = value
 
@@ -51,11 +58,11 @@ def with_fields(card, fields, precision=1):
     # post-processing
     #=================
 
-    if 'formats' in fields:
+    #if include_field('formats'):
         # Generate a list of strings regarding the cards' legality in each format
         # Format: "[Legality] in [Format]"
         # Don't tag cards that are too old for a format as banned in that format.
-        raise NotImplementedError("formats not calculated yet!")
+        #raise NotImplementedError("formats not calculated yet!")
 
     if 'rulings' in filtered_results:
         text = filtered_results['rulings']
@@ -71,5 +78,11 @@ def with_fields(card, fields, precision=1):
     scale_value('cmc')
     scale_value('power')
     scale_value('toughness')
+
+    # Clean up empty strings as null
+    for key in filtered_results:
+        if filtered_results[key] == "":
+            filtered_results[key] = None
+
 
     return filtered_results

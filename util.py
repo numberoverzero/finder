@@ -90,6 +90,8 @@ def format_scaled_value(value, scale, precision=1):
     Returns an int when value is evenly divisible by scale,
     otherwise returns a string with the given number of decimal places.
     '''
+    if value is None:
+        return None
     if value % scale == 0:
         return int(value / scale)
     return "{0:0.{p}f}".format(value / scale, p=precision)
