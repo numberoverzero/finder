@@ -94,4 +94,4 @@ def format_scaled_value(value, scale, precision=1):
         return None
     if value % scale == 0:
         return int(value / scale)
-    return "{0:0.{p}f}".format(value / scale, p=precision)
+    return "{0:0.{p}f}".format(float(value) / scale, p=precision)
